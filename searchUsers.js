@@ -121,6 +121,25 @@ class SearchUsers extends LitElement {
     this._error_text = undefined;
 
     this.searchUsers = debounce(this.searchUsers.bind(this), 500);
+    this._onFocusOutside = this._onFocusOutside.bind(this);
+  }
+
+  _onFocusOutside(e) {
+    const isClickInside = this.contains(e.target);
+    if (!isClickInside) {
+      this._state = "idle";
+      this.requestUpdate("_state");
+    }
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener("click", this._onFocusOutside);
+  }
+
+  disconnectedCallback() {
+    window.addEventListener("click", this._onFocusOutside);
+    super.disconnectedCallback();
   }
 
   render() {
