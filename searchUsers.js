@@ -117,7 +117,7 @@ class SearchUsers extends LitElement {
     super();
     this._search = "";
     this._users = [];
-    this._state = "success";
+    this._state = "idle";
     this._error_text = undefined;
 
     this.searchUsers = debounce(this.searchUsers.bind(this), 500);
