@@ -5,18 +5,30 @@ import { debounce } from "./utils";
 
 class SearchUsers extends LitElement {
   static styles = css`
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+    * {
+      margin: 0;
+    }
+
     .container {
       display: flex;
       flex-direction: column;
     }
 
     .search-box {
-      height: 40px;
+      height: 52px;
       display: flex;
       align-items: center;
-      border: 1px solid #cecece;
-      border-radius: 12px;
+      gap: 4px;
+      border: 1px solid #e9e9e9;
+      border-radius: 16px;
       overflow: hidden;
+      padding: 0 12px;
+      transition: border-color 0.2s ease;
     }
     .search-box:focus-within {
       border-color: #cecccc;
@@ -25,15 +37,22 @@ class SearchUsers extends LitElement {
       width: 20px;
       height: 20px;
       color: #cecece;
-      padding: 0 8px
     }
     .search-box input {
       border: none;
       height: 100%;
       flex-grow: 1;
+      font-size: 14px;
     }
     .search-box input:focus {
       outline: none;
+    }
+
+    .info {
+      font-size: 12px;
+      text-align: center;
+      padding: 12px 0;
+      color: #cecece;
     }
 
     .user-item-list {
@@ -68,8 +87,8 @@ class SearchUsers extends LitElement {
 
   constructor() {
     super();
-    this._users = [{ name: "Bobby" }];
-    this._filtered_users = [...this._users];
+    this._users = [];
+    this._state = "idle";
 
     this.searchUsers = debounce(this.searchUsers.bind(this), 500);
   }
@@ -100,17 +119,21 @@ class SearchUsers extends LitElement {
             placeholder="Search users"
           />
         </div>
+        <p class="info">${this._state === "loading" ? "Loading..." : "Search"}</p>
         <div class="search-results">${this.renderUsers()}</div>
       </div>
     `;
   }
 
   renderUsers() {
-    if (!this._filtered_users.length) {
+    if (this._state === "error") {
+      return html` <p class="empty">Something went wrong!</p> `;
+    }
+    if (!this._users.length) {
       return html` <p class="empty">No users found</p> `;
     }
     return html` <ul class="user-item-list">
-      ${this._filtered_users.map(
+      ${this._users.map(
         (user) => html`<li class="user-item">${user.name}</li>`
       )}
     </ul>`;
@@ -121,12 +144,26 @@ class SearchUsers extends LitElement {
     this.searchUsers(this._search);
   }
 
-  searchUsers(search) {
-    console.log("searching...", search);
-    this._filtered_users = this._users.filter((u) =>
-      u.name.toLowerCase().includes(search.toLowerCase())
-    );
-    this.requestUpdate("_filtered_users");
+  async searchUsers(search) {
+    this._state = "loading";
+    this.requestUpdate("_state");
+
+    try {
+      const url = new URL("https://api.ayetu.net/search-users");
+      url.searchParams.set("search", search);
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data);
+
+      this._users = data;
+      this._state = "idle";
+      this.requestUpdate("_users");
+    } catch (error) {
+      this._state = "error";
+      console.log(error);
+    } finally {
+      this.requestUpdate("_state");
+    }
   }
 }
 
