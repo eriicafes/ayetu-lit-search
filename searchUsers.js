@@ -134,11 +134,11 @@ class SearchUsers extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    window.addEventListener("mousedown", this._onFocusOutside);
+    document.addEventListener("click", this._onFocusOutside);
   }
 
   disconnectedCallback() {
-    window.addEventListener("mousedown", this._onFocusOutside);
+    document.removeEventListener("click", this._onFocusOutside);
     super.disconnectedCallback();
   }
 
