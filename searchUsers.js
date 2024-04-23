@@ -167,7 +167,10 @@ class SearchUsers extends LitElement {
           placeholder="Search users"
         />
         <svg
-          @click="${() => (this._search = "")}"
+          @click="${() => {
+            this._search = ""
+            this._state = "idle"
+          }}"
           class="close"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
